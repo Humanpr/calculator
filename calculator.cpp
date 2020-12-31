@@ -204,20 +204,37 @@ while(checkForMDOperation(finaltokens)){
 return finaltokens;
 }
 
-vector<Token> eliminateOneP(vector<Token> tokens){ //1+(2+3)*2=11
+vector<Token> eliminateOneP(vector<Token> tokens, int parantheseIndex);
+
+int searchTokenVector(vector<Token> tokens,int a,int b){ //not optimised. Search list for ( operator and return index from a to b | [a,b]
+for(int i=a;i<b;++i){
+    Token t=tokens[i];
+    if(t.op=='('){
+        cout<<"I "<<i;
+        return i;}
+}
+}
+
+vector<Token> eliminateOneP(vector<Token> tokens, int parantheseIndex){ //1+(2+3)*2=11      1+(2*(2+4)*4)=49
+
 vector<Token> expressionTokens;
 vector<Token> finaltokens=tokens;
 int insertIndex;
-    for(int i=0;i<tokens.size();++i){
+    for(int i=parantheseIndex;i<tokens.size();++i){
         if(checkToken(tokens[i])==1){  //enters if operator
 
         if(tokens[i].op=='('){
             
             insertIndex=i;
+
             finaltokens.erase(finaltokens.begin()+insertIndex); //deleted first paranthese ( 
                 cout<<"Erased first "<<i;
 
             for(int a=i+1;a<tokens.size();++a){
+
+                if(tokens[a].op=='('){  // if new paranthes then compute it and return
+                   return eliminateOneP(tokens,searchTokenVector(tokens,a,tokens.size()));
+                }
 
                 if(tokens[a].op==')'){
                     cout<<"Erased last "<<a;
@@ -250,6 +267,7 @@ int insertIndex;
     }
 
 }
+
 bool checkForP(vector<Token> tokens){  // checks if token vector contains any ( )
 for(Token token:tokens){
     if(token.isop){
@@ -260,11 +278,14 @@ for(Token token:tokens){
 }
 return false;
 }
+
+
+
 vector<Token> eliminateAllP(vector<Token> tokens){
     vector<Token> finaltokens=tokens;
     while(checkForP(finaltokens)){
         cout<<"While PARTY ()";
-        finaltokens=eliminateOneP(finaltokens);
+        finaltokens=eliminateOneP(finaltokens,searchTokenVector(finaltokens,0,finaltokens.size()));
 
     }
     return finaltokens;
