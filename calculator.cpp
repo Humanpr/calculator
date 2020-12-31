@@ -95,8 +95,8 @@ retoken.isNumber=true;
 return retoken;             //tokenise answer and return
 }
 
-vector<Token> eliminateOneMD(vector<Token> tokens){ // ifadeni sadelesdirir vurma bolme () leri hesablayir 1+2*3+6/2+5
-vector<Token> finalTokens=tokens;
+vector<Token> eliminateOneMD(vector<Token> tokens){ // ifadeni sadelesdirir vurma bolme () leri hesablayir 1+2*3+6/2+5 2*3
+ vector<Token> finalTokens=tokens;
 int insertIndex;
 for(int i=0;i<tokens.size();++i){
     Token token=tokens[i];
@@ -110,16 +110,21 @@ for(int i=0;i<tokens.size();++i){
             for(int a=i-1;a<tokens.size();++a){ //izolate * / equation and computePM then insert
 
             cout<<"\n G "<<a;
-            if(tokens[a].op=='+'|tokens[a].op=='-'|tokens[a].op=='x'){
+            if(tokens[a].op=='+'|tokens[a].op=='-'|a==tokens.size()-1){
                 // computeMD expression and insert
+                if(a==tokens.size()-1){
+                    expression.push_back(tokens[a]);
+                    finalTokens.erase(finalTokens.begin()+ insertIndex);
+                }
+                
                 cout<<"\n computed expression "<<computeMD(expression).intVal<<" "<<insertIndex;
                 finalTokens.insert(finalTokens.begin()+ insertIndex,computeMD(expression));
-
-                for(Token token:finalTokens){ //1+6+1
+for(Token token:expression){ //1+6+1
         
             cout<<"\n FINALtokens"<<token.intVal<<" "<<token.op;
         
     }
+                
                 // eliminateOneMD(finalTokens); 
                 return finalTokens;
                 
@@ -151,6 +156,10 @@ int computePM(vector<Token> tokens){ // only computes plus and minus expressions
     for(int i=0;i<tokens.size();++i){        // 1+6+1
         
         Token token=tokens[i];
+        if(tokens.size()==0){
+            sum=tokens[i].intVal;
+            return sum;
+        }
         //cout<<"Token check "<<token.op<<" "<<token.intVal<<" "<<tokens.size();
         switch(checkToken(token)){
             case 0: //number
@@ -213,6 +222,10 @@ int insertIndex;
                 if(tokens[a].op==')'){
                     cout<<"Erased last "<<a;
                     finaltokens.erase(finaltokens.begin()+insertIndex);//deleted last paranthese )
+
+                    for(Token token:expressionTokens){
+                        cout<<"\n Expression P "<<token.intVal<<"__"<<token.op;
+                    }
                     expressionTokens=eliminateAllMD(expressionTokens); // expression is clear from * / operators
                     int answer=computePM(expressionTokens); // calculated expression inside parantheses
                     Token tokenA;
@@ -220,9 +233,7 @@ int insertIndex;
                     tokenA.isNumber=true;
                     finaltokens.insert(finaltokens.begin()+insertIndex,tokenA);
 
-                    for(Token token:expressionTokens){
-                        cout<<"\n Expression P "<<token.intVal<<"__"<<token.op;
-                    }
+                    
                     cout<<"\n Answer is "<<answer;
                     return finaltokens;
                 }
@@ -259,6 +270,14 @@ vector<Token> eliminateAllP(vector<Token> tokens){
     return finaltokens;
 }
 
+int calculateExpression(vector<Token> tokens){
+    vector<Token> finalTokens=tokens;
+    finalTokens=eliminateAllP(finalTokens);
+    finalTokens=eliminateAllMD(finalTokens);
+    return computePM(finalTokens);
+
+}
+
 int main(){ // MAINNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
 
     vector<Token> tokens;
@@ -276,22 +295,15 @@ int main(){ // MAINNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
 }
 //tokenising ends time to computePM
 }
-Token endToken;      // adding endtoken to mark end of expression
-endToken.isop=true;
-endToken.op='x';
-tokens.push_back(endToken);
 
-
-tokens=eliminateAllP(tokens);
 for(Token token:tokens){
         
             cout<<"\n TTokens"<<token.intVal<<" "<<token.op;
         
     }
-tokens=eliminateAllMD(tokens);
 
 
-cout<<"\n ="<<computePM(tokens)<<"= ";  //vurma bolme expressionlari hell olunub yerine salindiqdan sonra toplama cixma computePM gonderilir
+cout<<"\n ="<<calculateExpression(tokens)<<"= ";  //vurma bolme expressionlari hell olunub yerine salindiqdan sonra toplama cixma computePM gonderilir
 
 
 
