@@ -6,15 +6,11 @@ using namespace std;
 
 class Token{
 public:
-
 int intVal;
 bool isNumber=false;
 
 char op;
 bool isop=false;
-
-int status; //1 for numbers, 2 for others
-
 };
 
 bool isNumber(char a){ // checks if char is number and returns bool
@@ -38,7 +34,7 @@ digit+=chartoInt(digits[i])*pow(10,digits.size()-i-1);
 return digit;
 }
 
-Token tokeniseNumber(char number){
+Token tokeniseNumber(char number){ // Takes char value of int and returns Token
     Token token;
     vector<char> charDigits;
     int intVal;
@@ -72,7 +68,7 @@ int checkToken(Token token){
 }
 
 //12+5*6/2+21+(21+5)*2
-Token compute(vector<Token> expression){
+Token computeMD(vector<Token> expression){ // only computes multiplaction an division
 int answer=1;
 for(int i=0;i<expression.size();++i){
     Token token=expression[i];
@@ -95,10 +91,11 @@ switch(checkToken(token)){
 Token retoken;
 retoken.intVal=answer;
 retoken.isNumber=true;
+
 return retoken;             //tokenise answer and return
 }
 
-vector<Token> eliminater(vector<Token> tokens){ // ifadeni sadelesdirir vurma bolme () leri hesablayir 1+2*3+6/2+5
+vector<Token> eliminateOneMD(vector<Token> tokens){ // ifadeni sadelesdirir vurma bolme () leri hesablayir 1+2*3+6/2+5
 vector<Token> finalTokens=tokens;
 int insertIndex;
 for(int i=0;i<tokens.size();++i){
@@ -109,19 +106,21 @@ for(int i=0;i<tokens.size();++i){
             
             cout<<"\n IN"<<token.op<<"OPOP"<<i;
             vector<Token> expression;
-            for(int a=i-1;a<tokens.size();++a){ //izolate * / equation and calculate then insert
+
+            for(int a=i-1;a<tokens.size();++a){ //izolate * / equation and computePM then insert
+
             cout<<"\n G "<<a;
-            if(tokens[a].op=='+'||tokens[a].op=='-'){
-                // compute expression and insert
-                cout<<"\n computed expression "<<compute(expression).intVal<<" "<<insertIndex;
-                finalTokens.insert(finalTokens.begin()+ insertIndex,compute(expression));
+            if(tokens[a].op=='+'|tokens[a].op=='-'|tokens[a].op=='x'){
+                // computeMD expression and insert
+                cout<<"\n computed expression "<<computeMD(expression).intVal<<" "<<insertIndex;
+                finalTokens.insert(finalTokens.begin()+ insertIndex,computeMD(expression));
 
                 for(Token token:finalTokens){ //1+6+1
         
             cout<<"\n FINALtokens"<<token.intVal<<" "<<token.op;
         
     }
-                // eliminater(finalTokens); 
+                // eliminateOneMD(finalTokens); 
                 return finalTokens;
                 
             }else{
@@ -140,12 +139,12 @@ cout<<"\n insert index"<<insertIndex;
 
 
 }
-int calculate(vector<Token> tokens){
+int computePM(vector<Token> tokens){ // only computes plus and minus expressions
     int sum=0;
-    //call eliminater then just add and subtrack here
+    //call eliminateOneMD then just add and subtrack here
     for(Token token:tokens){
         
-            //cout<<"\n CHECK "<<token.intVal<<" "<<token.op<<" "<<tokens.size();
+            cout<<"\n CHECK "<<token.intVal<<" "<<token.op<<" "<<tokens.size();
         
     }
 
@@ -177,7 +176,8 @@ int calculate(vector<Token> tokens){
     
 return sum;
 }
-bool checkForExpression(vector<Token> tokens){ // returns true if given token vector contains any * / operation
+
+bool checkForMDOperation(vector<Token> tokens){ // returns true if given token vector contains any * / operation
     for(Token token:tokens){
         if(token.isop){
             if(token.op=='*'||token.op=='/'){
@@ -186,6 +186,77 @@ bool checkForExpression(vector<Token> tokens){ // returns true if given token ve
         }
     }
 
+}
+vector<Token> eliminateAllMD(vector<Token> tokens){  // Eliminates all multiplaction and division operations on expression
+vector<Token> finaltokens=tokens;
+while(checkForMDOperation(finaltokens)){
+    finaltokens=eliminateOneMD(finaltokens);
+}
+return finaltokens;
+}
+
+vector<Token> eliminateOneP(vector<Token> tokens){ //1+(2+3)*2=11
+vector<Token> expressionTokens;
+vector<Token> finaltokens=tokens;
+int insertIndex;
+    for(int i=0;i<tokens.size();++i){
+        if(checkToken(tokens[i])==1){  //enters if operator
+
+        if(tokens[i].op=='('){
+            
+            insertIndex=i;
+            finaltokens.erase(finaltokens.begin()+insertIndex); //deleted first paranthese ( 
+                cout<<"Erased first "<<i;
+
+            for(int a=i+1;a<tokens.size();++a){
+
+                if(tokens[a].op==')'){
+                    cout<<"Erased last "<<a;
+                    finaltokens.erase(finaltokens.begin()+insertIndex);//deleted last paranthese )
+                    expressionTokens=eliminateAllMD(expressionTokens); // expression is clear from * / operators
+                    int answer=computePM(expressionTokens); // calculated expression inside parantheses
+                    Token tokenA;
+                    tokenA.intVal=answer;
+                    tokenA.isNumber=true;
+                    finaltokens.insert(finaltokens.begin()+insertIndex,tokenA);
+
+                    for(Token token:expressionTokens){
+                        cout<<"\n Expression P "<<token.intVal<<"__"<<token.op;
+                    }
+                    cout<<"\n Answer is "<<answer;
+                    return finaltokens;
+                }
+                else{
+                expressionTokens.push_back(tokens[a]); // adding tokens inside parantheses to expressionTokens list
+                finaltokens.erase(finaltokens.begin()+insertIndex); // erasing from tokens after adding. Planning to insert int value of erased expression
+
+                }
+                
+            }
+            
+        }
+    }
+    }
+
+}
+bool checkForP(vector<Token> tokens){  // checks if token vector contains any ( )
+for(Token token:tokens){
+    if(token.isop){
+        if(token.op=='(') return true;
+        
+        
+    }
+}
+return false;
+}
+vector<Token> eliminateAllP(vector<Token> tokens){
+    vector<Token> finaltokens=tokens;
+    while(checkForP(finaltokens)){
+        cout<<"While PARTY ()";
+        finaltokens=eliminateOneP(finaltokens);
+
+    }
+    return finaltokens;
 }
 
 int main(){ // MAINNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
@@ -203,27 +274,26 @@ int main(){ // MAINNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
         case '+':case '-':case '*':case '/':case '(':case ')':
         tokens.push_back(tokeniseOperator(ch)); //adding operator to token list
 }
-//tokenising ends
-//time to calculate
-
-
-    
+//tokenising ends time to computePM
 }
+Token endToken;      // adding endtoken to mark end of expression
+endToken.isop=true;
+endToken.op='x';
+tokens.push_back(endToken);
 
-//vector<Token> tokenVector=tokens;
-while(true){
-    if(checkForExpression(tokens)){
-tokens=eliminater(tokens);
-}else break;
-}
 
-cout<<"\n ="<<calculate(tokens)<<"= ";  //vurma bolme expressionlari hell olunub yerine salindiqdan sonra toplama cixma calculate gonderilir
-
+tokens=eliminateAllP(tokens);
 for(Token token:tokens){
         
-            cout<<"\n tokens"<<token.intVal<<" "<<token.op;
+            cout<<"\n TTokens"<<token.intVal<<" "<<token.op;
         
     }
+tokens=eliminateAllMD(tokens);
+
+
+cout<<"\n ="<<computePM(tokens)<<"= ";  //vurma bolme expressionlari hell olunub yerine salindiqdan sonra toplama cixma computePM gonderilir
+
+
 
 
 
