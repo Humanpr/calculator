@@ -1,6 +1,8 @@
 #include<iostream>
 #include<vector>
 #include<cmath>
+#include <stdlib.h>
+#include <stdio.h>
 
 using namespace std;
 
@@ -21,7 +23,7 @@ switch(a){
     return false;
 }
 
-int chartoInt(char digit){
+int chartoInt(char digit){ // in->char out->int
 return (int)(digit-'0');
 }
 
@@ -34,7 +36,7 @@ digit+=chartoInt(digits[i])*pow(10,digits.size()-i-1);
 return digit;
 }
 
-Token tokeniseNumber(char number){ // Takes char value of int and returns Token
+Token tokeniseNumber(char number){ // Takes char value of int and tokenises it as int and returns token
     Token token;
     vector<char> charDigits;
     int intVal;
@@ -55,7 +57,7 @@ token.intVal=intVal;
 return token;
 }
 
-Token tokeniseOperator(char op){
+Token tokeniseOperator(char op){  // takes char and tokenises it as operator and returns token
     Token token;
     token.op=op;
     token.isop=true;
@@ -83,6 +85,10 @@ switch(checkToken(token)){
         answer *= expression[++i].intVal;
         break;
         case '/':
+        if(expression[++i].intVal==0){ //added divide zero checker 
+            cout<<" NO DIVIDE TO ZERO";
+            exit(1);
+        }
         answer /= expression[++i].intVal;
         break;
     }
@@ -272,18 +278,16 @@ bool checkForP(vector<Token> tokens){  // checks if token vector contains any ( 
 for(Token token:tokens){
     if(token.isop){
         if(token.op=='(') return true;
-        
-        
-    }
+        }
 }
 return false;
 }
 
 
 
-vector<Token> eliminateAllP(vector<Token> tokens){
+vector<Token> eliminateAllP(vector<Token> tokens){  // solves all paranthese expression and inserts it at right place then returns vector
     vector<Token> finaltokens=tokens;
-    while(checkForP(finaltokens)){
+    while(checkForP(finaltokens)){ //checking for paranthese operator
         cout<<"While PARTY ()";
         finaltokens=eliminateOneP(finaltokens,searchTokenVector(finaltokens,0,finaltokens.size()));
 
@@ -291,7 +295,7 @@ vector<Token> eliminateAllP(vector<Token> tokens){
     return finaltokens;
 }
 
-int calculateExpression(vector<Token> tokens){
+int calculateExpression(vector<Token> tokens){  // calculates Expressions of all kind
     vector<Token> finalTokens=tokens;
     finalTokens=eliminateAllP(finalTokens);
     finalTokens=eliminateAllMD(finalTokens);
